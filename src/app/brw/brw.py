@@ -1,5 +1,7 @@
 import asyncio
 
+from datetime import datetime
+
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator
 
@@ -10,6 +12,7 @@ from pydoll.browser.options import Options
 from .models import ExecuteScriptResult
 
 from ..logger import logger
+from .utils import decode_jwt
 
 
 class Browser:
@@ -60,13 +63,25 @@ class G2GBrowser(Browser):
                 return
             await asyncio.sleep(sleep_interval)
 
+    async def is_valid_token(self, token) -> bool:
+        decoded = decode_jwt(token)
+        logger.info(f"Token expired at: {datetime.fromtimestamp(decoded.exp)}")
+        now_timestampe = datetime.now().timestamp()
+        if decoded.exp > now_timestampe:
+            return True
+        await self.page.refresh()
+        await asyncio.sleep(5)
+        return False
+
     async def get_access_token_in_safe(
         self,
         sleep_interval: int = 10,
     ) -> str:
         token: str | None = await self.get_access_token()
         if token:
-            return token
+            if await self.is_valid_token(token):
+                return token
+            return await self.get_access_token_in_safe(sleep_interval)
 
         logger.info("Waiting for login")
         await self.waiting_for_login(sleep_interval)

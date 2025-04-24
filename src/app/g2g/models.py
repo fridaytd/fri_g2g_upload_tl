@@ -391,13 +391,3 @@ class BulkUpdateResponse(BaseModel):
     messages: list[str]
     payload: BulkUpdateStat
     request_id: str
-
-
-#################
-#
-# JWT payload
-#
-
-
-class JWTPayload(BaseModel):
-    sub: str

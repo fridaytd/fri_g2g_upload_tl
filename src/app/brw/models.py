@@ -19,3 +19,14 @@ class MiddleResult(BaseModel):
 class ExecuteScriptResult(BaseModel):
     id: int
     result: MiddleResult
+
+
+#################
+#
+# JWT payload
+#
+
+
+class JWTPayload(BaseModel):
+    sub: str
+    exp: int

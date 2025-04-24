@@ -14,7 +14,7 @@ from .g2g.models import (
     Collection,
     ChildrenCollection,
 )
-from .g2g.utils import decode_jwt
+from .brw.utils import decode_jwt
 from .g2g.crwl_api import crwl_g2g_api_client
 from .g2g.enums import OfferStatus
 
