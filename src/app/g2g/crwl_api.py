@@ -122,7 +122,7 @@ class CrwlG2GAPI:
         brand_id: str | None = None,
         region_id: str | None = None,
     ) -> Response[Collection]:
-        query_params: dict[str, str] = {}
+        query_params: dict[str, str] = {"include_searchable_only": "0"}
 
         if service_id:
             query_params["service_id"] = service_id

@@ -4,6 +4,8 @@ from urllib.parse import urlparse, parse_qs
 from pydantic import BaseModel, RootModel
 from typing import Generic, TypeVar, Literal
 
+from .enums import InputField
+
 T = TypeVar("T", bound=BaseModel)
 
 
@@ -116,7 +118,7 @@ class Collection(BaseModel):
     value: str
     label: CollectionLabel
     sort_order: int
-    input_field: str
+    input_field: InputField
     is_required: bool
     is_updatable: bool
     is_multi_layer: bool
@@ -173,6 +175,11 @@ class OfferAttribute(BaseModel):
     dataset_id: str
 
 
+class OfferAttributeValue(BaseModel):
+    collection_id: str
+    value: str
+
+
 class ExternalImagesMapping(BaseModel):
     image_name: str
     image_url: str
@@ -206,7 +213,7 @@ class CreateOfferPayload(BaseModel):
     low_stock_alert_qty: int
     sales_territory_settings: SalesTerritorySettings
     title: str
-    offer_attributes: list[OfferAttribute]
+    offer_attributes: list[OfferAttribute | OfferAttributeValue]
     external_images_mapping: list[ExternalImagesMapping]
     unit_price: float
     other_pricing: list = []
@@ -226,7 +233,7 @@ class CreatedOffer(BaseModel):
     region_id: str
     relation_id: str
     offer_type: str
-    offer_attributes: list[OfferAttribute]
+    offer_attributes: list
     offer_title_collection_tree: list[str]
     primary_img_attributes: list
     offer_group: str
@@ -281,7 +288,7 @@ class SellerRanking(BaseModel):
 
 class OfferValue(BaseModel):
     collection_id: str
-    dataset_id: str
+    dataset_id: str | None = None
     value: str
 
 

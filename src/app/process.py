@@ -13,10 +13,11 @@ from .g2g.models import (
     OfferAttribute,
     Collection,
     ChildrenCollection,
+    OfferAttributeValue,
 )
 from .brw.utils import decode_jwt
 from .g2g.crwl_api import crwl_g2g_api_client
-from .g2g.enums import OfferStatus
+from .g2g.enums import OfferStatus, InputField
 
 from .update_messages import (
     created_offer_message,
@@ -61,7 +62,9 @@ def __construct_offer_attribute(
     )
 
 
-def construct_offer_attributes(s_offer: SOffer) -> list[OfferAttribute]:
+def construct_offer_attributes(
+    s_offer: SOffer,
+) -> list[OfferAttribute | OfferAttributeValue]:
     url_query = URlQuery.from_url(s_offer.Create_offer_link)
 
     collections = crwl_g2g_api_client.get_collections(
@@ -96,17 +99,29 @@ def construct_offer_attributes(s_offer: SOffer) -> list[OfferAttribute]:
                 )
                 final_collections.extend(collections_attributes_search)
 
-    offer_attributes: list[OfferAttribute] = []
+    offer_attributes: list[OfferAttribute | OfferAttributeValue] = []
 
-    if len(attribute_values) < len(final_collections):
+    if len(attribute_values) < len(
+        [collection for collection in final_collections if collection.is_required]
+    ):
         raise Exception(
-            f"Missing attributes. You must input enough: {[collection.value for collection in final_collections]}"
+            f"Missing attributes. You must input enough: {[collection.value for collection in final_collections if collection.is_required]}"
         )
 
     for i, collection in enumerate(final_collections):
-        offer_attributes.append(
-            __construct_offer_attribute(collection, attribute_values[i + 1])
-        )
+        if collection.input_field == InputField.DROPDOWN:
+            offer_attributes.append(
+                __construct_offer_attribute(collection, attribute_values[i + 1])
+            )
+        else:
+            if not collection.is_required and not attribute_values.get(i + 1):
+                continue
+            offer_attributes.append(
+                OfferAttributeValue(
+                    collection_id=collection.collection_id,
+                    value=attribute_values[i + 1],
+                )
+            )
 
     return offer_attributes
 
